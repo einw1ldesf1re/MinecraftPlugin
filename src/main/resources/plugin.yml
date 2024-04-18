@@ -5,5 +5,7 @@ api-version: '1.20'
 
 commands:
   vote:
-    description: You can vote for (day, night, sun)
+    description: Create a Vote for World time/weather
+    usage: "Usage: /vote [yes|no|day|night|sun]"
     aliases:
+    permission: luemmel.vote.*, luemmel.vote.sun, luemmel.vote.night, luemmel.vote.day

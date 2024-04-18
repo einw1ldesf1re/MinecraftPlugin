@@ -28,7 +28,7 @@ public class vote implements CommandExecutor{
 
     private static int y = 0;
     private static int n = 0;
-    private static int vote_time = 10; //seconds
+    private static int vote_time = 45; //seconds
     private static int vote_time_counter = vote_time;
     private static boolean isvote = false;
     private BukkitRunnable runnable;
@@ -113,6 +113,7 @@ public class vote implements CommandExecutor{
                             player.sendMessage("");
                         }
                         isvote = true;
+                        vote_time_counter = vote_time;
 
                         runnable = new BukkitRunnable() {
                             @Override
@@ -149,11 +150,135 @@ public class vote implements CommandExecutor{
                 sender.sendMessage("§8[§6Lümmel§8] §7: §cYou don't have Permissions");
                 return true;
             }else if(args[0].equals("night")){
+                if (sender.hasPermission("luemmel.vote.night") || sender.hasPermission("luemmel.vote.*")) {
+                    if (!isvote) {
 
+                        TextComponent agree = new TextComponent("§8[§a✔§8]");
+                        agree.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("§7Click to vote for \"yes\"").create()));
+                        agree.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/vote yes"));
+
+                        TextComponent spacer1 = new TextComponent("              ");
+                        TextComponent spacer2 = new TextComponent("      §7|      ");
+
+                        TextComponent disagree = new TextComponent("§8[§c✘§8]");
+                        disagree.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("§7Click to vote for \"no\"").create()));
+                        disagree.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/vote no"));
+
+                        for (Player player : Bukkit.getOnlinePlayers()) {
+                            player.sendMessage("");
+                            player.sendMessage("");
+                            player.sendMessage("§8§m⋯⋯⋯⋯⋯⋯⋯⋯⋯§8{ §6 Vote §8}§m⋯⋯⋯⋯⋯⋯⋯⋯⋯");
+                            player.sendMessage("§7author: "+sender.getName());
+                            player.sendMessage("§7reason: §eTime set Night");
+                            player.spigot().sendMessage(spacer1, agree, spacer2, disagree);
+                            player.sendMessage("§8§m⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯");
+                            player.sendMessage("");
+                        }
+                        isvote = true;
+                        vote_time_counter = vote_time;
+
+                        runnable = new BukkitRunnable() {
+                            @Override
+                            public void run() {
+                                Bukkit.getOnlinePlayers().forEach(player -> {
+
+                                    double max = y+n; //100%
+                                    double percent_y = y/(max/100); //yes in percent
+                                    double percent_n = n/(max/100); //no in percent
+
+                                    double repeat_amount_y = (percent_y*((double) display_percent_length /100));
+                                    double repeat_amount_n = (percent_n*((double) display_percent_length /100));
+                                    if(y+n > 0) {
+                                        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent("§6Vote §8(§7Night§8) §7: §a" + sym.repeat((int) repeat_amount_y) + "§c" + sym.repeat((int) repeat_amount_n) + " §7: §8" + formatCounter(vote_time_counter)));
+                                    }else{
+                                        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent("§6Vote §8(§7Night§8) §7: §f" + sym.repeat(display_percent_length) + " §7: §8" + formatCounter(vote_time_counter)));
+                                    }
+                                });
+                                vote_time_counter--;
+                            }
+                        };
+                        runnable.runTaskTimer(plugin, 0 , 20);
+
+                        y++;                                        //let Creator vote instandly for yes
+                        voted_players.add((Player) sender);         //add Creator to Players already voted
+                        awaitSeconds("night", p.getLocation().getWorld());
+
+                        return true;
+                    } else {
+                        sender.sendMessage("§8[§6Lümmel§8] §7: §cThere is already a voting");
+                        return true;
+                    }
+                }
+                sender.sendMessage("§8[§6Lümmel§8] §7: §cYou don't have Permissions");
+                return true;
+            }else if(args[0].equals("sun")){
+                if (sender.hasPermission("luemmel.vote.sun") || sender.hasPermission("luemmel.vote.*")) {
+                    if (!isvote) {
+
+                        TextComponent agree = new TextComponent("§8[§a✔§8]");
+                        agree.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("§7Click to vote for \"yes\"").create()));
+                        agree.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/vote yes"));
+
+                        TextComponent spacer1 = new TextComponent("              ");
+                        TextComponent spacer2 = new TextComponent("      §7|      ");
+
+                        TextComponent disagree = new TextComponent("§8[§c✘§8]");
+                        disagree.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("§7Click to vote for \"no\"").create()));
+                        disagree.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/vote no"));
+
+                        for (Player player : Bukkit.getOnlinePlayers()) {
+                            player.sendMessage("");
+                            player.sendMessage("");
+                            player.sendMessage("§8§m⋯⋯⋯⋯⋯⋯⋯⋯⋯§8{ §6 Vote §8}§m⋯⋯⋯⋯⋯⋯⋯⋯⋯");
+                            player.sendMessage("§7author: "+sender.getName());
+                            player.sendMessage("§7reason: §eWeather set Sun");
+                            player.spigot().sendMessage(spacer1, agree, spacer2, disagree);
+                            player.sendMessage("§8§m⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯");
+                            player.sendMessage("");
+                        }
+                        isvote = true;
+                        vote_time_counter = vote_time;
+
+                        runnable = new BukkitRunnable() {
+                            @Override
+                            public void run() {
+                                Bukkit.getOnlinePlayers().forEach(player -> {
+
+                                    double max = y+n; //100%
+                                    double percent_y = y/(max/100); //yes in percent
+                                    double percent_n = n/(max/100); //no in percent
+
+                                    double repeat_amount_y = (percent_y*((double) display_percent_length /100));
+                                    double repeat_amount_n = (percent_n*((double) display_percent_length /100));
+                                    if(y+n > 0) {
+                                        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent("§6Vote §8(§7Sun§8) §7: §a" + sym.repeat((int) repeat_amount_y) + "§c" + sym.repeat((int) repeat_amount_n) + " §7: §8" + formatCounter(vote_time_counter)));
+                                    }else{
+                                        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent("§6Vote §8(§7Sun§8) §7: §f" + sym.repeat(display_percent_length) + " §7: §8" + formatCounter(vote_time_counter)));
+                                    }
+                                });
+                                vote_time_counter--;
+                            }
+                        };
+                        runnable.runTaskTimer(plugin, 0 , 20);
+
+                        y++;                                        //let Creator vote instandly for yes
+                        voted_players.add((Player) sender);         //add Creator to Players already voted
+                        awaitSeconds("sun", p.getLocation().getWorld());
+
+                        return true;
+                    } else {
+                        sender.sendMessage("§8[§6Lümmel§8] §7: §cThere is already a voting");
+                        return true;
+                    }
+                }
+                sender.sendMessage("§8[§6Lümmel§8] §7: §cYou don't have Permissions");
+                return true;
+            }else{
+                sender.sendMessage("§8[§6Lümmel§8] §7: /vote <yes, no, day, night, sun>");
             }
 
         }else{
-            sender.sendMessage("§8[§6Lümmel§8] §7: /vote <yes, no, day>");
+            sender.sendMessage("§8[§6Lümmel§8] §7: /vote <yes, no, day, night, sun>");
         }
 
         return true;
@@ -197,7 +322,7 @@ public class vote implements CommandExecutor{
                     if (argument.equals("day")) {
                         if (n >= y) {
                             for (Player player : Bukkit.getOnlinePlayers()) {
-                                player.sendMessage("§8[§6Lümmel§8] §7: §cWorld time was not set to \"day\"");
+                                player.sendMessage("§8[§6Lümmel§8] §7: §cWorld time has not set to \"day\"");
                             }
                         } else if (n < y && (y >= (Bukkit.getOnlinePlayers().size() * 0.5))) {
 
@@ -213,13 +338,52 @@ public class vote implements CommandExecutor{
                             }
 
                         }
+                    }else if(argument.equals("night")){
+                        if (n >= y) {
+                            for (Player player : Bukkit.getOnlinePlayers()) {
+                                player.sendMessage("§8[§6Lümmel§8] §7: §cWorld time has not set to \"night\"");
+                            }
+                        } else if (n < y && (y >= (Bukkit.getOnlinePlayers().size() * 0.5))) {
+
+                            for (Player player : Bukkit.getOnlinePlayers()) {
+                                player.sendMessage("§8[§6Lümmel§8] §7: §aWorld time has set to \"night\"");
+                            }
+                            try {
+                                w.setFullTime(13000);
+
+                            } catch (Exception ex) {
+                                System.out.println("Exception: " + ex.getMessage());
+                                ex.printStackTrace();
+                            }
+
+                        }
+                    }else if(argument.equals("sun")){
+                        if (n >= y) {
+                            for (Player player : Bukkit.getOnlinePlayers()) {
+                                player.sendMessage("§8[§6Lümmel§8] §7: §cWorld weather has not set to \"sun\"");
+                            }
+                        } else if (n < y && (y >= (Bukkit.getOnlinePlayers().size() * 0.5))) {
+
+                            for (Player player : Bukkit.getOnlinePlayers()) {
+                                player.sendMessage("§8[§6Lümmel§8] §7: §aWorld weather has set to \"sun\"");
+                            }
+                            try {
+                                w.setStorm(false);
+                                w.setThundering(false);
+
+                            } catch (Exception ex) {
+                                System.out.println("Exception: " + ex.getMessage());
+                                ex.printStackTrace();
+                            }
+
+                        }
                     }
                     isvote = false;
                     voted_players.clear();
                     runnable.cancel();
                 }
                 }
-            },  vote_time * 20);
+            },  (vote_time+1) * 20);
 
     }
 
