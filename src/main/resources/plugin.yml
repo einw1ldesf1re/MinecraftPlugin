@@ -1,0 +1,9 @@
+name: LuemmelPlugin
+version: '${project.version}'
+main: de.leon.luemmelplugin.LuemmelPlugin
+api-version: '1.20'
+
+commands:
+  vote:
+    description: You can vote for (day, night, sun)
+    aliases:
