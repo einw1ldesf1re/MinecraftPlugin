@@ -1,6 +1,7 @@
 package de.leon.luemmelplugin.commands;
 
 import de.leon.luemmelplugin.LuemmelPlugin;
+import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
@@ -28,7 +29,9 @@ public class vote implements CommandExecutor{
     private static int y = 0;
     private static int n = 0;
     private static int vote_time = 10; //seconds
+    private static int vote_time_counter = vote_time;
     private static boolean isvote = false;
+    private BukkitRunnable runnable;
     private static List<Player> voted_players = new ArrayList<>();
 
 
@@ -36,6 +39,13 @@ public class vote implements CommandExecutor{
     private static boolean display_percent = true;
     private static int display_percent_length = 30;
     private static String sym = "┃";
+
+
+    private final JavaPlugin plugin;
+
+    public vote(JavaPlugin plugin){
+        this.plugin = plugin;
+    }
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
@@ -54,23 +64,6 @@ public class vote implements CommandExecutor{
                         y++;
                         voted_players.add((Player) sender);
                         sender.sendMessage("§8[§6Lümmel§8] §7: §7You have voted for \"§aYes§7\"");
-
-                        //percentage //////////////////////////////////////////////
-                        double max = y+n; //100%
-                        double percent_y = y/(max/100); //yes in percent
-                        double percent_n = n/(max/100); //no in percent
-
-                        Bukkit.getLogger().info(percent_y + " | "+ percent_n);
-
-                        double repeat_amount_y = (percent_y*((double) display_percent_length /100));
-                        double repeat_amount_n = (percent_n*((double) display_percent_length /100));
-
-                        //Bukkit.getLogger().info(repeat_amount_y + " | "+ repeat_amount_n);
-
-                        //Bukkit.getLogger().info(sym.repeat((int) repeat_amount_y) + sym.repeat((int) repeat_amount_n));
-
-                        //////////////////////////////////////////////////////////
-
                     }else{
                         sender.sendMessage("§8[§6Lümmel§8] §7: §cYou have already voted");
                     }
@@ -102,14 +95,50 @@ public class vote implements CommandExecutor{
                         agree.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("§7Click to vote for \"yes\"").create()));
                         agree.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/vote yes"));
 
+                        TextComponent spacer1 = new TextComponent("              ");
+                        TextComponent spacer2 = new TextComponent("      §7|      ");
+
+                        TextComponent disagree = new TextComponent("§8[§c✘§8]");
+                        disagree.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("§7Click to vote for \"no\"").create()));
+                        disagree.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/vote no"));
+
                         for (Player player : Bukkit.getOnlinePlayers()) {
-                            player.spigot().sendMessage(agree);
+                            player.sendMessage("");
+                            player.sendMessage("");
+                            player.sendMessage("§8§m⋯⋯⋯⋯⋯⋯⋯⋯⋯§8{ §6 Vote §8}§m⋯⋯⋯⋯⋯⋯⋯⋯⋯");
+                            player.sendMessage("§7author: "+sender.getName());
+                            player.sendMessage("§7reason: §eTime set Day");
+                            player.spigot().sendMessage(spacer1, agree, spacer2, disagree);
+                            player.sendMessage("§8§m⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯");
+                            player.sendMessage("");
                         }
-
                         isvote = true;
-                        awaitSeconds("day", p.getLocation().getWorld());
 
-                        //Bukkit.getLogger().info("Vote Day ausgeführt!!!!!!!!!!!!!!!!");
+                        runnable = new BukkitRunnable() {
+                            @Override
+                            public void run() {
+                                Bukkit.getOnlinePlayers().forEach(player -> {
+
+                                    double max = y+n; //100%
+                                    double percent_y = y/(max/100); //yes in percent
+                                    double percent_n = n/(max/100); //no in percent
+
+                                    double repeat_amount_y = (percent_y*((double) display_percent_length /100));
+                                    double repeat_amount_n = (percent_n*((double) display_percent_length /100));
+                                    if(y+n > 0) {
+                                        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent("§6Vote §8(§7Day§8) §7: §a" + sym.repeat((int) repeat_amount_y) + "§c" + sym.repeat((int) repeat_amount_n) + " §7: §8" + formatCounter(vote_time_counter)));
+                                    }else{
+                                        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent("§6Vote §8(§7Day§8) §7: §f" + sym.repeat(display_percent_length) + " §7: §8" + formatCounter(vote_time_counter)));
+                                    }
+                                });
+                                vote_time_counter--;
+                            }
+                        };
+                        runnable.runTaskTimer(plugin, 0 , 20);
+
+                        y++;                                        //let Creator vote instandly for yes
+                        voted_players.add((Player) sender);         //add Creator to Players already voted
+                        awaitSeconds("day", p.getLocation().getWorld());
 
                         return true;
                     } else {
@@ -119,8 +148,8 @@ public class vote implements CommandExecutor{
                 }
                 sender.sendMessage("§8[§6Lümmel§8] §7: §cYou don't have Permissions");
                 return true;
-            }else if(args[0].equals("sun")){
-                p.getLocation().getWorld().setTime(1000);
+            }else if(args[0].equals("night")){
+
             }
 
         }else{
@@ -130,10 +159,33 @@ public class vote implements CommandExecutor{
         return true;
     }
 
-    private final JavaPlugin plugin;
+    private String formatCounter(int duration){
+        String string = "";
+        int minutes = 0;
+        int seconds = 0;
 
-    public vote(JavaPlugin plugin){
-        this.plugin = plugin;
+        if(duration / 60 >= 1){
+            minutes = duration / 60;
+            duration = duration - ((duration / 60) * 60);
+        }
+
+        if(duration >= 1){
+            seconds = duration;
+        }
+
+        if(minutes <= 9){
+            string = string + "0" + minutes + ":";
+        }else{
+            string = string + minutes + ":";
+        }
+
+        if(seconds <= 9){
+            string = string + "0" + seconds;
+        }else{
+            string = string + seconds;
+        }
+
+        return string;
     }
 
     public void awaitSeconds(String argument, World w) {
@@ -164,9 +216,11 @@ public class vote implements CommandExecutor{
                     }
                     isvote = false;
                     voted_players.clear();
+                    runnable.cancel();
                 }
                 }
             },  vote_time * 20);
 
     }
+
 }
